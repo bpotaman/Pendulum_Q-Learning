@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Bartek/OneDrive/Desktop/UMA/pendulum_plots/media/videos/main/480p15/partial_movie_files/ManimGraph/1185818338_871382812_223132457.mp4'
+file 'file:C:/Users/Bartek/OneDrive/Desktop/UMA/pendulum_plots/media/videos/main/480p15/partial_movie_files/ManimGraph/624642324_2950778587_3714796059.mp4'
+file 'file:C:/Users/Bartek/OneDrive/Desktop/UMA/pendulum_plots/media/videos/main/480p15/partial_movie_files/ManimGraph/624642324_2475379470_3443066037.mp4'
