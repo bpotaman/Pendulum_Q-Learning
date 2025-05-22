@@ -17,23 +17,23 @@ class ManimGraph(Scene):
 
 
 
-        with open(r"graphs\graph_01_5000.pkl", "rb") as f:
+        with open(r"graphs\graph_a_01_5k.pkl", "rb") as f:
             dataset1 = np.load(f, allow_pickle=True)
         
-        x1 = dataset1[0][0::10]
-        y1 = dataset1[1][0::10]
+        x1 = dataset1[0][0::5]
+        y1 = dataset1[1][0::5]
 
-        with open(r"graphs\graph_001_5000.pkl", "rb") as f:
+        with open(r"graphs\graph_a_001_5k.pkl", "rb") as f:
             dataset2 = np.load(f, allow_pickle=True)
 
-        x2 = dataset2[0][0::10]
-        y2 = dataset2[1][0::10]
+        x2 = dataset2[0][0::5]
+        y2 = dataset2[1][0::5]
 
-        with open(r"graphs\graph_0001_5000.pkl", "rb") as f:
+        with open(r"graphs\graph_a_0001_5k.pkl", "rb") as f:
             dataset2 = np.load(f, allow_pickle=True)
 
-        x3 = dataset2[0][0::10]
-        y3 = dataset2[1][0::10]
+        x3 = dataset2[0][0::5]
+        y3 = dataset2[1][0::5]
 
         
 

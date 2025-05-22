@@ -95,14 +95,14 @@ def learn(is_training, thread_number):
 if __name__ == "__main__":
     threads = []
 
-    # learn(False, 3)
+    learn(False, 3)
 
-    for i in range(1, 4):
-        t = threading.Thread(target=learn, args=(True, i,))
-        threads.append(t)
+    # for i in range(1, 4):
+    #     t = threading.Thread(target=learn, args=(True, i,))
+    #     threads.append(t)
     
-    for t in threads:
-        t.start()
+    # for t in threads:
+    #     t.start()
     
-    for t in threads:
-        t.join()
+    # for t in threads:
+    #     t.join()
