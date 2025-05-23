@@ -13,7 +13,7 @@ def learn(is_training, thread_number):
     epsilon = 1 if is_training else 0
     epsilon_decrease = 0.01
     epsilon_min = 0.05
-    alpha = 10 ** (-thread_number)
+    alpha = 0.1 * (thread_number + 1)
     gamma = 0.9
 
     # discretize action and state space
@@ -28,7 +28,7 @@ def learn(is_training, thread_number):
         q_table = np.zeros((divide, divide, divide, divide))
 
     else:
-        with open(rf"q_tables\q_table_{thread_number + 10}.pkl", "rb") as f:
+        with open(rf"q_tables\q_table_{thread_number}.pkl", "rb") as f:
             q_table = np.load(f, allow_pickle=True)
     
     episode_number = 0
@@ -83,26 +83,26 @@ def learn(is_training, thread_number):
         episode_number % sample_frequency == 0 and mean_rewards.append(np.mean(rewards))
         episode_number % (sample_frequency * 10) == 0 and print(f"Mean reward: {np.mean(rewards)}")
 
-    with open(rf"q_tables\q_table_{thread_number + 10}.pkl", "wb") as f:
+    with open(rf"q_tables\q_table_{thread_number}.pkl", "wb") as f:
         pickle.dump(q_table, f)
 
     graph = [range(0, episode_number + 1, sample_frequency), mean_rewards]
     
-    with open(rf"pendulum_plots\graphs\graph_{thread_number + 10}.pkl", "wb") as f:
+    with open(rf"pendulum_plots\graphs\graph_{thread_number}.pkl", "wb") as f:
         pickle.dump(graph, f)
                 
 
 if __name__ == "__main__":
     threads = []
 
-    learn(False, 3)
+    # learn(False, 3)
 
-    # for i in range(1, 4):
-    #     t = threading.Thread(target=learn, args=(True, i,))
-    #     threads.append(t)
+    for i in range(1, 4):
+        t = threading.Thread(target=learn, args=(True, i,))
+        threads.append(t)
     
-    # for t in threads:
-    #     t.start()
+    for t in threads:
+        t.start()
     
-    # for t in threads:
-    #     t.join()
+    for t in threads:
+        t.join()
