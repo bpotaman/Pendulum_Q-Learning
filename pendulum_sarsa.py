@@ -6,6 +6,8 @@ import threading
 
 sample_frequency = 100
 
+
+# it can be used to learn or to animate fruits of our learning
 def learn(is_training, thread_number):
     env = gym.make("Pendulum-v1", render_mode="human" if not is_training else None)
 
@@ -13,7 +15,7 @@ def learn(is_training, thread_number):
     epsilon = 1 if is_training else 0
     epsilon_decrease = 0.01
     epsilon_min = 0.05
-    alpha = 0.1 * (thread_number + 1)
+    alpha = 0.1 * thread_number
     gamma = 0.9
 
     # discretize action and state space
@@ -28,7 +30,7 @@ def learn(is_training, thread_number):
         q_table = np.zeros((divide, divide, divide, divide))
 
     else:
-        with open(rf"q_tables\q_table_{thread_number}.pkl", "rb") as f:
+        with open(rf"q_tables\q_table_a_01_20k.pkl", "rb") as f:
             q_table = np.load(f, allow_pickle=True)
     
     episode_number = 0
@@ -37,43 +39,49 @@ def learn(is_training, thread_number):
     # learning loop
     while episode_number < 20000:
         episode_number += 1
-        episode_number % 100 == 0 and print(f"Episode {episode_number}")
+        if episode_number % 100 == 0:
+            print(f"Episode {episode_number}")
         rewards = []
         sd = random.randint(0, 100)
-        sx, sy, sw = env.reset(seed=sd)[0]
+        obs = env.reset(seed=sd)[0]
 
-        sx = np.digitize(sx, x)
-        sy = np.digitize(sy, y)
-        sw = np.digitize(sw, w)
+        sx = np.digitize(obs[0], x)
+        sy = np.digitize(obs[1], y)
+        sw = np.digitize(obs[2], w)
+
+        # Choose initial action using epsilon-greedy
+        if epsilon > random.uniform(0, 1):
+            action_index = random.randint(0, divide - 1)
+        else:
+            action_index = np.argmax(q_table[sx, sy, sw, :])
 
         steps = 0
         # episode loop
-        while steps < 1000 or is_training == False:
-            # behavioral policy will be epsilon greedy
-            if epsilon > random.uniform(0, 1):
-                # take random action
-                action_index = random.randint(0, divide - 1) 
-            else:
-                # take greedy action
-                action_index = np.argmax(q_table[sx, sy, sw, :])
-            
-            
-            action = a[action_index]
-           
-            state, reward, _, _, _ = env.step([action])
-
+        while steps < 1000 or not is_training:
+            action = [a[action_index]]
+            next_obs, reward, _, _, _ = env.step(action)
             rewards.append(reward)
-            state[0] = min(divide - 1, np.digitize(state[0], x))
-            state[1] = min(divide - 1, np.digitize(state[1], y))
-            state[2] = min(divide - 1, np.digitize(state[2], w))
-           
-            # update Q-table
-            q_table[sx, sy, sw, action_index] = q_table[sx, sy, sw, action_index] + \
-            alpha*(reward + gamma*np.max(q_table[np.int64(state[0]), np.int64(state[1]), np.int64(state[2]), :]) - q_table[sx, sy, sw, action_index])
 
-            sx = np.int64(state[0])
-            sy = np.int64(state[1])
-            sw = np.int64(state[2])
+            # Discretize next state
+            next_sx = min(divide - 1, np.digitize(next_obs[0], x))
+            next_sy = min(divide - 1, np.digitize(next_obs[1], y))
+            next_sw = min(divide - 1, np.digitize(next_obs[2], w))
+
+            # Choose next action using epsilon-greedy (SARSA)
+            if epsilon > random.uniform(0, 1):
+                next_action_index = random.randint(0, divide - 1)
+            else:
+                next_action_index = np.argmax(q_table[next_sx, next_sy, next_sw, :])
+
+            # SARSA update rule
+            q_table[sx, sy, sw, action_index] += alpha * (
+                reward + gamma * q_table[next_sx, next_sy, next_sw, next_action_index]
+                - q_table[sx, sy, sw, action_index]
+            )
+
+            # Move to next state and action
+            sx, sy, sw = next_sx, next_sy, next_sw
+            action_index = next_action_index
 
             steps += 1
         
@@ -83,7 +91,7 @@ def learn(is_training, thread_number):
         episode_number % sample_frequency == 0 and mean_rewards.append(np.mean(rewards))
         episode_number % (sample_frequency * 10) == 0 and print(f"Mean reward: {np.mean(rewards)}")
 
-    with open(rf"q_tables\q_table_{thread_number}.pkl", "wb") as f:
+    with open(rf"q_tables\q_table_sarsa_{thread_number}.pkl", "wb") as f:
         pickle.dump(q_table, f)
 
     graph = [range(0, episode_number + 1, sample_frequency), mean_rewards]
@@ -92,17 +100,21 @@ def learn(is_training, thread_number):
         pickle.dump(graph, f)
                 
 
+def threaded_learning(number_of_threads):
+    threads = []
+    for i in range(1, number_of_threads + 1):
+        t = threading.Thread(target=learn, args=(True, i,))
+        threads.append(t)
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
 if __name__ == "__main__":
     threads = []
 
     # learn(False, 3)
 
-    for i in range(1, 4):
-        t = threading.Thread(target=learn, args=(True, i,))
-        threads.append(t)
-    
-    for t in threads:
-        t.start()
-    
-    for t in threads:
-        t.join()
+    # learn(True, 1)
+
+    threaded_learning(2)
